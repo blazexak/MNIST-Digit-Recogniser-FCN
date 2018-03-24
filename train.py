@@ -81,7 +81,8 @@ with tf.Session() as sess:
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
     plt.xlabel('iterations (per ten)')
-    plt.title('Learning rate = '+str(learningRate))
+    plt.title('Learning rate = '+str(learningRate))    
+    plt.savefig("images/result_epoch" + str(numEpochs) + ".jpg")
     plt.show()
             
     # Evaluate validation and test sets
