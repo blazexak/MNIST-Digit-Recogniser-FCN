@@ -24,29 +24,37 @@ print("Building fully connected layers with one hidden layers with 784 weights."
 print("Using softmax activation with 10 outputs.")
 print("Using cross entropy cost function with Adam optimizer.")
 ops.reset_default_graph()
+
 # Create placeholder for training data
-x = tf.placeholder(tf.float32, shape=[None, 784])
-y = tf.placeholder(tf.float32, shape=[None, 10])
+x = tf.placeholder(tf.float32, shape=[None, 784], name="x")
+y = tf.placeholder(tf.float32, shape=[None, 10], name="y")
 
 # Initialise random weights for one layer fully connected network
-W = tf.get_variable("W", [784,10], \
-                     initializer=tf.contrib.layers.xavier_initializer(seed=0))
-b = tf.get_variable("b", [10], \
+tf.set_random_seed(1)   
+W1 = tf.get_variable("W1", [784,100], \
+                     initializer=tf.contrib.layers.xavier_initializer(seed=1))
+b1 = tf.get_variable("b1", [1, 100], \
+                     initializer=tf.zeros_initializer())
+W2 = tf.get_variable("W2", [100,10], \
+                     initializer=tf.contrib.layers.xavier_initializer(seed=1))
+b2 = tf.get_variable("b2", [1, 10], \
                      initializer=tf.zeros_initializer())
 
 # Define forward propagation
-Z =  tf.add(tf.matmul(x, W), b)
+Z1 =  tf.add(tf.matmul(x, W1), b1)
+A1 = tf.nn.relu(Z1)
+Z2 = tf.add(tf.matmul(A1, W2), b2)
 
 # Define cost functin
 #labels = tf.transpose(y)
 #logits = tf.transpose(Z)
 labels = y
-logits = Z
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits))
+logits = Z2
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels))
 
 # Hyperparameters Info
 learningRate = 0.001
-numEpochs = 100
+numEpochs = 20
 m = mnist.train.images.shape[0]
 miniBatchSize = 100
 numMiniBatches = int(m / miniBatchSize)
@@ -86,8 +94,10 @@ with tf.Session() as sess:
     plt.show()
             
     # Evaluate validation and test sets
-    correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y,1))                  
+    pred = tf.nn.softmax(logits)
+    correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))                  
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+       
     print("Test set accuracy: {0}".format(accuracy.eval(feed_dict=
           {x: mnist.test.images, y: mnist.test.labels})))
     print("Validation set accuracy: {0}".format(accuracy.eval(feed_dict=
